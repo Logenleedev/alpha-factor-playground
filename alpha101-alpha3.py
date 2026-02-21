@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 
 import akshare as ak
 import datetime as dt
@@ -76,10 +77,21 @@ if len(monthly_ic) >= 2:
     ic_mean = monthly_ic.mean()
     ic_std = monthly_ic.std()
     ic_ir = ic_mean / ic_std if ic_std != 0 else np.nan
+    
+    # T统计量计算
+    n = len(monthly_ic)
+    if n >= 2 and ic_std != 0:
+        t_stat = ic_mean / (ic_std / np.sqrt(n))
+        p_value = stats.t.sf(np.abs(t_stat), n-1) * 2  # 双尾检验
+    else:
+        t_stat = float('nan')
+        p_value = float('nan')
 else:
     ic_mean = rank_ic
     ic_std = float('nan')
     ic_ir = float('nan')
+    t_stat = float('nan')
+    p_value = float('nan')
 
 print('因子: -1 * correlation(rank(open), rank(volume), 10)')
 print('IC_spearman:', rank_ic)
@@ -87,6 +99,8 @@ print('IC_pearson:', pearson_ic)
 print('IC_mean (月度):', ic_mean)
 print('IC_std (月度):', ic_std)
 print('IC_IR:', ic_ir)
+print('T-statistic:', t_stat)
+print('P-value:', p_value)
 
 if not df_ic.empty:
     x = df_ic['factor']
